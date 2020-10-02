@@ -1,0 +1,22 @@
+---
+# vars file for setup-cluster-role
+  bastion: true
+  topology: private
+
+  master_node_size: t2.micro
+  compute_node_size: t2.micro
+  kubernetes_version: "1.19.0"  
+  master_volume_size: 50
+  kubernetes_networking: amazon-vpc-routed-eni
+  
+  prod_az_count: 3
+  env: dev
+  az_array: []
+
+#This needs to be run from cli  
+  aws_region: us-east-1
+  aws_profile: ""
+  cluster_name: ""
+  state_store: ""
+  dns_zone: ""
+  ssh_public_key: ""

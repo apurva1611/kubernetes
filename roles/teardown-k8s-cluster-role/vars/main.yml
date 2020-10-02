@@ -1,0 +1,3 @@
+---
+# vars file for teardown-cluster-role
+aws_region: us-east-1
