@@ -4,7 +4,7 @@
 #Setting kubernetes_version variable
 - name: Configure kubernetes_version variable
   set_fact:
-    kubernetes_version: "{{ kubernetes_version | default('1.19.0') }}"
+    kubernetes_version: "{{ kubernetes_version | default('1.18.0') }}"
 
 - name: Configure Master Node Size variable
   set_fact:
@@ -16,11 +16,11 @@
 
 - name: Configure DNS Zone variable
   set_fact:
-    dns_zone: "{{ dns_zone | default('dev.achirashah.com') }}"
+    dns_zone: "{{ dns_zone }}"
 
 - name: Configure SSH public key
   set_fact:
-    ssh_public_key: "{{ ssh_public_key | default('~/.ssh/mykeypair.pub') }}"
+    ssh_public_key: "{{ ssh_public_key | default('~/.ssh/id_rsa.pub') }}"
 
 - name: Retrieve all AZ in region {{ aws_region }}
   aws_az_facts:
@@ -55,7 +55,7 @@
 #   shell: chmod 777 roles/setup-k8s-cluster-role/templates/yq-merge-editor.sh
 
 - name: Configure the cluster
-  shell: "AWS_PROFILE={{ aws_profile }} kops create cluster -out --bastion={{ bastion }} --cloud=aws --dns=private --dns-zone={{ dns_zone }} --master-size={{ master_node_size }} --node-size={{ compute_node_size }} --networking={{ kubernetes_networking }}  --node-count={{ compute_node_count }} --topology={{ topology }} --zones={{az_array | join(',')}} --master-zones={{az_array | join(',')}} --ssh-public-key={{ ssh_public_key }} --name={{ cluster_name }} --state {{ state_store }} --kubernetes-version {{ kubernetes_version }}"
+  shell: "AWS_PROFILE={{ aws_profile }} kops create cluster -out={{out}}  --bastion={{ bastion }} --cloud={{cloud}} --dns={{dns}} --dns-zone={{ dns_zone }} --master-size={{ master_node_size }} --node-size={{ compute_node_size }} --networking={{ kubernetes_networking }}  --node-count={{ compute_node_count }} --topology={{ topology }} --zones={{az_array | join(',')}} --master-zones={{az_array | join(',')}} --ssh-public-key={{ ssh_public_key }} --name={{ cluster_name }} --state {{ state_store }} --kubernetes-version {{ kubernetes_version }}"  
 
 - name: Setting authenticationTokenWebhook specs
   shell: "AWS_PROFILE={{ aws_profile }} KOPS_FEATURE_FLAGS=SpecOverrideFlag kops set cluster --name={{ cluster_name }} spec.kubelet.authenticationTokenWebhook=true --state {{ state_store }}"
@@ -65,6 +65,9 @@
 
 # - name: Edit Instance group maxsize
 #   shell: "EDITOR='./roles/setup-cluster-role/templates/yq-merge-editor.sh roles/setup-cluster-role/templates/spec.yml' AWS_PROFILE={{ aws_profile }} kops edit instancegroups nodes --state {{ state_store }} --name {{ cluster_name }}"
+
+- name: Create secret
+  shell: AWS_PROFILE={{ aws_profile }} kops create secret --name={{ cluster_name }} sshpublickey admin -i {{ ssh_public_key }} --state {{ state_store }}
 
 - name: Create the physical cluster
   shell: "AWS_PROFILE={{ aws_profile }} kops update cluster {{ cluster_name }} --yes --state {{ state_store }}"

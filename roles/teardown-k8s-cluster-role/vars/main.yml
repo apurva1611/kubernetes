@@ -1,8 +1,8 @@
 ---
 # vars file for teardown-cluster-role
+# need to provide these values
   aws_region: us-east-1
-  aws_profile: dev
-  cluster_name: cluster.apurvamathur.me
-  state_store: s3://apurvamathurme-k8s-cluster-s3
-  dns_zone: dev.apurvamathur.me
-  ssh_public_key: ~/.ssh/devKeyPair
+  aws_profile: ""
+  cluster_name: ""
+  state_store: ""
+  dns_zone: ""
