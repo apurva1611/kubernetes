@@ -13,4 +13,4 @@ $ ansible-playbook setup-k8s-cluster.yml -vvv --extra-vars "aws_profile=<env> dn
 
 To delete the cluster run following command
 
-$ ansible-playbook delete-k8s-cluster.yml -vvv --extra-vars "aws_profile=<env> cluster_name=<cluster-name> state_store=s3://<bucket>"
+$ ansible-playbook teardown-k8s-cluster.yml -vvv --extra-vars "aws_profile=<env> cluster_name=<cluster-name> state_store=s3://<bucket>"
