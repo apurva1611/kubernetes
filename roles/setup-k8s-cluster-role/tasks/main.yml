@@ -25,6 +25,7 @@
 - name: Retrieve all AZ in region {{ aws_region }}
   aws_az_facts:
     region: "{{ aws_region }}"
+    profile: "{{ aws_profile }}"
   register: regions_azs
 
 - name: Configure prod AZ count
