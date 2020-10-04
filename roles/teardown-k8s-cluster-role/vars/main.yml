@@ -1,0 +1,8 @@
+---
+# vars file for teardown-cluster-role
+# need to provide these values
+  aws_region: us-east-1
+  aws_profile: ""
+  cluster_name: ""
+  state_store: ""
+  dns_zone: ""

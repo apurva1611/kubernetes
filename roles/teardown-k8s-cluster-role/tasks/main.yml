@@ -1,0 +1,13 @@
+---
+# tasks file for teardown-cluster-role
+- name: Get the clusters
+  shell: AWS_PROFILE="{{ aws_profile }}" kops get cluster --state="{{ state_store }}"  -o yaml
+
+# - set_fact:
+#     group_object_value: "{{status.stdout|from_json|json_query('stdout_lines[].metadata.name')}}"
+
+  # tasks file for teardown-cluster-role
+- name: Delete the cluster
+  shell: AWS_PROFILE="{{ aws_profile }}" kops delete cluster --name="{{ cluster_name }}" --state="{{ state_store }}" --yes
+
+

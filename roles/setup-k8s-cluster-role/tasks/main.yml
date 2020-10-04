@@ -1,0 +1,81 @@
+---
+# tasks file for setup-cluster-role
+
+#Setting kubernetes_version variable
+- name: Configure kubernetes_version variable
+  set_fact:
+    kubernetes_version: "{{ kubernetes_version | default('1.18.0') }}"
+
+- name: Configure Master Node Size variable
+  set_fact:
+    master_node_size: "{{ master_node_size | default('t2.medium') }}"
+
+- name: Configure Compute Node Size variable
+  set_fact:
+    compute_node_size: "{{ compute_node_size | default('t2.medium') }}"
+
+- name: Configure DNS Zone variable
+  set_fact:
+    dns_zone: "{{ dns_zone }}"
+
+- name: Configure SSH public key
+  set_fact:
+    ssh_public_key: "{{ ssh_public_key | default('~/.ssh/id_rsa.pub') }}"
+
+- name: Retrieve all AZ in region {{ aws_region }}
+  aws_az_facts:
+    region: "{{ aws_region }}"
+    profile: "{{ aws_profile }}"
+  register: regions_azs
+
+- name: Configure prod AZ count
+  set_fact:
+    az_count: "{{ prod_az_count }}"
+  when: "{{env == 'prod'}}"
+
+- name: Retrieve AZ names
+  set_fact:
+    az_array: "{{az_array}} + [ '{{ item.zone_name }}' ]"
+  loop: "{{ regions_azs.availability_zones }}"
+  loop_control:
+    index_var: indx
+  when: "{{ indx <= az_count|default(1)|int-1}}"
+
+- name: Configure dev Compute Node Count variable
+  set_fact:
+    compute_node_count:  "{{ compute_node_count | default(1) }}"
+  when: "{{env == 'dev'}}"
+
+- name: Configure prod Compute Node Count variable
+  set_fact:
+    compute_node_count:  "{{ (compute_node_count is defined and compute_node_count > 3) |ternary(compute_node_count,3) }}"
+  when:
+    - "{{env == 'prod'}}"
+
+# - name: Change file permissions
+#   shell: chmod 777 roles/setup-k8s-cluster-role/templates/yq-merge-editor.sh
+
+- name: Configure the cluster
+  shell: "AWS_PROFILE={{ aws_profile }} kops create cluster -out={{out}}  --bastion={{ bastion }} --cloud={{cloud}} --dns={{dns}} --dns-zone={{ dns_zone }} --master-size={{ master_node_size }} --node-size={{ compute_node_size }} --networking={{ kubernetes_networking }}  --node-count={{ compute_node_count }} --topology={{ topology }} --zones={{az_array | join(',')}} --master-zones={{az_array | join(',')}} --ssh-public-key={{ ssh_public_key }} --name={{ cluster_name }} --state {{ state_store }} --kubernetes-version {{ kubernetes_version }}"  
+
+- name: Setting authenticationTokenWebhook specs
+  shell: "AWS_PROFILE={{ aws_profile }} KOPS_FEATURE_FLAGS=SpecOverrideFlag kops set cluster --name={{ cluster_name }} spec.kubelet.authenticationTokenWebhook=true --state {{ state_store }}"
+
+- name: Setting authorizationMode specs
+  shell: "AWS_PROFILE={{ aws_profile }} KOPS_FEATURE_FLAGS=SpecOverrideFlag kops set cluster --name={{ cluster_name }} spec.kubelet.authorizationMode=Webhook --state {{ state_store }}"
+
+# - name: Edit Instance group maxsize
+#   shell: "EDITOR='./roles/setup-cluster-role/templates/yq-merge-editor.sh roles/setup-cluster-role/templates/spec.yml' AWS_PROFILE={{ aws_profile }} kops edit instancegroups nodes --state {{ state_store }} --name {{ cluster_name }}"
+
+- name: Create secret
+  shell: AWS_PROFILE={{ aws_profile }} kops create secret --name={{ cluster_name }} sshpublickey admin -i {{ ssh_public_key }} --state {{ state_store }}
+
+- name: Create the physical cluster
+  shell: "AWS_PROFILE={{ aws_profile }} kops update cluster {{ cluster_name }} --yes --state {{ state_store }}"
+
+- name: Validate cluster
+  shell: "AWS_PROFILE={{ aws_profile }} kops validate cluster --name={{ cluster_name }} --state={{ state_store }}"
+  register: status
+  until: status.stdout.find('Your cluster '+ cluster_name +' is ready')  !=  -1
+  retries: 20
+  delay: 60

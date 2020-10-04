@@ -1,0 +1,9 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+
+  - import_role:
+      name: roles/setup-k8s-cluster-role
+  
