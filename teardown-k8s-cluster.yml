@@ -1,9 +1,10 @@
 ---
+#Delete k8s cluster (If there is rds and vpc connection run teardown-rds-vpcPeering-role first)     
 - hosts: localhost
   connection: local
   gather_facts: false
   tasks:
-  
-  - import_role:
+  - name: delete cluster
+    import_role:
       name: roles/teardown-k8s-cluster-role
   

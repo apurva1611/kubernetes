@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+  - name : delete vpc peering
+    import_role:
+      name: roles/teardown-vpc-peering-role
+
+  - name: delete rds
+    import_role:
+      name: roles/teardown-rds-role
+
+  - name: delete cluster
+    import_role:
+      name: roles/teardown-k8s-cluster-role
+  
