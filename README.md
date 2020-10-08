@@ -26,3 +26,7 @@ $ ansible-playbook teardown-k8s-cluster.yml -vvv --extra-vars "aws_profile=<env>
 To create the rds and vpc peering run following
 
 $ ansible-playbook setup-rds-vpcPeering.yaml --extra-vars "aws_profile=<env> cluster_name=<cluster-name>"
+
+To delete the rds and vpc peering run following
+
+$ ansible-playbook teardown-rds-vpcPeering.yml -vvv --extra-vars "aws_profile=<env> cluster_name=<env>"
