@@ -1,0 +1,16 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Create K8s cluster
+      import_role:
+        name: roles/setup-k8s-cluster-role
+        
+    - name: Create RDS instance
+      import_role:
+        name: roles/setup-rds-role
+
+    - name: Create VPC peering
+      import_role:
+        name: roles/setup-vpc-peering-role

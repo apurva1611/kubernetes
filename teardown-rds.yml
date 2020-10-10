@@ -1,0 +1,11 @@
+---
+#Delete rds  (If there is vpc connection run teardown-vpcPeering-role first)  
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+  - name: delete rds
+    import_role:
+      name: roles/teardown-rds-role
+
+  

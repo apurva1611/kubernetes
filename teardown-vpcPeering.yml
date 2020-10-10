@@ -1,0 +1,11 @@
+---
+#Delete VPC peering    
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+  - name : delete vpc peering
+    import_role:
+      name: roles/teardown-vpc-peering-role
+
+  
