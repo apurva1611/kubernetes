@@ -9,9 +9,9 @@ rds_instancename: "webapp-db-instance"
 
 rds_instancetype: "db.t3.micro"
 
-rds_username: "dbuser"
+rds_username: "root"
 
-rds_password: "dbpassword"
+rds_password: "pass1234"
 
 rds_subnetgroup: "DB_Subnet_Group"
 
