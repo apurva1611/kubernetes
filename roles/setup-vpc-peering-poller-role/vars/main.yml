@@ -1,0 +1,4 @@
+---
+# vars file for vpc-peering-role
+
+aws_region: us-east-1

@@ -3,10 +3,16 @@
   connection: local
   gather_facts: false
   tasks:
-    - name: Create RDS instance
-      import_role:
-        name: roles/setup-rds-role
+    # - name: Create RDS instance
+    #   import_role:
+    #     name: roles/setup-rds-role
 
     - name: Create VPC peering
       import_role:
-        name: roles/setup-vpc-peering-role
+        name: roles/setup-vpc-peering-webapp-role
+    - name: Create VPC peering
+      import_role:
+        name: roles/setup-vpc-peering-poller-role
+    - name: Create VPC peering
+      import_role:
+        name: roles/setup-vpc-peering-notifier-role                

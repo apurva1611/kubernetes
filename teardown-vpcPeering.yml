@@ -7,5 +7,11 @@
   - name : delete vpc peering
     import_role:
       name: roles/teardown-vpc-peering-role
+  - name : delete vpc peering
+    import_role:
+      name: roles/teardown-vpc-peering-poller-role
+  - name : delete vpc peering
+    import_role:
+      name: roles/teardown-vpc-peering-notifier-role            
 
   
