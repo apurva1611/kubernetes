@@ -1,0 +1,23 @@
+# Listing all VPC Peers
+- name: List all vpc peers
+  community.aws.ec2_vpc_peering_info:
+    region: "{{ aws_region }}"
+    profile: "{{ aws_profile }}"
+    filters:
+        status-code: ['active']
+        tag:Name: K8s-Peering
+  register: all_k8s_vpc_peers
+
+- name: Debugging the result
+  ansible.builtin.debug:
+    msg: "{{ all_k8s_vpc_peers.result }}"
+
+# Delete a local VPC peering connection
+- name: delete a local VPC peering Connection
+  community.aws.ec2_vpc_peer:
+    region: "{{ aws_region }}"
+    profile: "{{ aws_profile }}"
+    peering_id: "{{ all_k8s_vpc_peers.result[0].vpc_peering_connection_id }}"
+    state: absent
+  when: all_k8s_vpc_peers.result|length != 0
+  register: vpc_peer

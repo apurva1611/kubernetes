@@ -1,0 +1,30 @@
+# vars file for create-rds-role
+service: poller
+
+aws_region: us-east-1
+
+rds_dbname : "pollerdb"
+
+rds_instancename: "poller-db-instance"
+
+rds_subnetgroup: "poller_DB_Subnet_Group"
+
+rds_securitygroup: "poller_DB_Security_Group"
+
+vpc_name: "poller_db-{{ aws_region }}-vpc"
+vpc_cidr: 10.1.0.0/16
+vpc_subnets:
+  private-1:
+    cidr: 10.1.1.0/24
+    az: "{{ aws_region }}b"
+  private-2:
+    cidr: 10.1.2.0/24
+    az: "{{ aws_region }}c"
+vpc_security_groups:
+  - name: ssh
+    description: "Open SSH port 22"
+    rules:
+      - proto: tcp
+        cidr_ip: 0.0.0.0/0
+        ports:
+          - 22

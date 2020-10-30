@@ -1,0 +1,165 @@
+# tasks file for create-rds-role
+# Create DB-VPC
+- name: Create VPC for db
+  ec2_vpc_net:
+    state: present
+    region: "{{ aws_region }}"
+    name: "{{ vpc_name }}"
+    cidr_block: "{{ vpc_cidr }}"
+    dns_hostnames: yes
+    dns_support: yes
+    multi_ok: no
+    tenancy: default
+    profile: "{{ aws_profile }}"
+    tags:
+      Name: "db_vpc"
+  register: db_vpc
+
+- name: Create Internet Gateway
+  ec2_vpc_igw:
+    state: present
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    vpc_id: "{{ db_vpc.vpc.id }}"
+    tags:
+      Name: "db_igw"
+  register: db_igw
+
+- name: Create subnets
+  ec2_vpc_subnet:
+    state: present
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    az: "{{ item.value.az }}"
+    vpc_id: "{{ db_vpc.vpc.id }}"
+    cidr: "{{ item.value.cidr }}"
+    tags:
+      Name: "db_{{ item.value.az }}"
+  with_dict: "{{ vpc_subnets }}"
+  register: db_vpc_subnets
+
+- name: Grab the route tables
+  ec2_vpc_route_table_info:
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    filters:
+      vpc-id: "{{ db_vpc.vpc.id }}"
+  register: db_route_table
+
+- name: Update the route table in the vpc
+  ec2_vpc_route_table:
+    state: present
+    lookup: id
+    route_table_id: "{{ db_route_table.route_tables[0].id }}"
+    vpc_id: "{{ db_vpc.vpc.id}}"
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    tags:
+      Name: "db_route_table_{{ db_vpc.vpc.id }}"
+    subnets:
+        - "{{ db_vpc_subnets.results[0].subnet.id }}"
+        - "{{ db_vpc_subnets.results[1].subnet.id }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ db_igw.gateway_id }}"
+  register: db_route_table_updated
+
+- name: Create vpc security groups
+  ec2_group:
+    state: present
+    profile: "{{ aws_profile}}"
+    region: "{{ aws_region }}"
+    vpc_id: "{{ db_vpc.vpc.id }}"
+    name: "db_sg_{{ db_vpc.vpc.id }}"
+    description: "db security group for {{ db_vpc.vpc.id }}"
+    rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: 0.0.0.0/0
+  register: db_sg
+
+# Get the DB VPC details
+- name: get db_vpc id
+  ec2_vpc_net_info:
+    region: "{{ aws_region }}"
+    profile: "{{ aws_profile}}"
+    filters:
+      tag:Name: "notifier_db-{{ aws_region }}-vpc"
+  register: db_vpcinfo
+
+- name: get k8s vpc id
+  ec2_vpc_net_info:
+    region: "{{ aws_region }}"
+    profile: "{{ aws_profile}}"
+    filters:
+      "tag:Name": "{{ cluster_name }}"
+  register: k8s_vpcinfo
+
+# Get the db VPC's subnet details
+- name: Get Facts of VPC
+  ec2_vpc_subnet_facts:
+    region: "{{ aws_region }}"
+    profile: "{{ aws_profile}}"
+    filters:
+      vpc-id: "{{ db_vpcinfo.vpcs[0].vpc_id }}"
+  register: db_subnetinfo
+
+# Create Subnet group for RDS which will have all the subnets of the VPC refered above
+- name: Create RDS Subnet Group
+  vars:
+        # Get all Subnet ids and convert to a list
+    subnet_ids: "{{ db_subnetinfo.subnets|map(attribute='id')|list }}"
+  rds_subnet_group:
+    name: "{{rds_subnetgroup}}"
+    description: RDS Subnet Group
+    region: "{{ aws_region }}"
+    profile: "{{ aws_profile}}"
+    state: "present"
+    subnets: "{{ subnet_ids }}"
+  register: rds_subnet
+
+- name: Get the Security group
+  ec2_group_info:
+    region: "{{ aws_region }}"
+    profile: "{{ aws_profile}}"
+    filters:
+      vpc-id: "{{ db_vpcinfo.vpcs[0].vpc_id }}"
+  register: db_securitygroup  
+
+- name: Update the security group with k8s details
+  ec2_group:
+    vpc_id: "{{ db_vpcinfo.vpcs[0].vpc_id }}"
+    profile: "{{ aws_profile}}"
+    region: "{{ aws_region }}"
+    description: security group for rds
+    name: "{{rds_securitygroup}}"
+    rules:
+      - proto: tcp
+        from_port: 3306
+        to_port: 3306
+        cidr_ip: "{{ k8s_vpcinfo.vpcs[0].cidr_block }}"
+  register: security_group 
+  
+- name: Create rds instance
+  rds:
+    command:  create
+    instance_name:  "{{ rds_instancename }}"
+    instance_type: "{{ rds_instancetype }}"
+    db_engine:  MySQL
+    region: "{{ aws_region }}"
+    profile: "{{ aws_profile}}"
+    db_name: "{{ rds_dbname }}"
+    port: 3306
+    size: "20"
+    multi_zone: no
+    publicly_accessible: false
+    subnet: "{{  rds_subnet.subnet_group.name }}"
+    vpc_security_groups: "{{security_group.group_id}}"
+    username: "{{ rds_username }}"
+    password: "{{ rds_password }}"
+    tags:
+      Application: "{{ notifier }}"
+    wait: yes
+    wait_timeout: 3000
+  register: rds_kubernetes  

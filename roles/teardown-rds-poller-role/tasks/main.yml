@@ -1,0 +1,98 @@
+---  
+# tasks file for teardown-rds-role
+- name: delete rds
+  rds:
+    command: delete
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    instance_name: "{{ rds_instancename }}"
+    wait: yes
+
+- name: Delete RDS subnet
+  rds_subnet_group:
+    state: absent
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    name: "{{rds_subnetgroup}}"
+
+- name: Security group info
+  ec2_group_info:
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    filters:
+      group-name: "{{ rds_securitygroup }}"
+  register: security_details
+
+- name: Debugging the result
+  ansible.builtin.debug:
+    msg: "{{ security_details }}"
+
+- name: Delete security group
+  ec2_group:
+    description: Ec2 Security group
+    region: "{{ aws_region }}"
+    profile: "{{ aws_profile }}"
+    group_id: "{{security_details.security_groups[0].group_id}}"
+    state: absent
+  when: security_details.security_groups|length != 0
+
+- name: Get vpc id
+  ec2_vpc_net_info:
+    region: "{{ aws_region }}"
+    profile: "{{ aws_profile }}"
+    filters:
+      "tag:Name": "{{vpc_name}}"
+  register: vpc_info
+
+- name: Delete subnets
+  ec2_vpc_subnet:
+    state: absent
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    az: "{{ item.value.az }}"
+    vpc_id: "{{ vpc_info.vpcs[0].vpc_id }}"
+    cidr: "{{ item.value.cidr }}"
+    tags:
+      Name: "db_{{ item.value.az }}"
+  with_dict: "{{ vpc_subnets }}"
+  register: db_vpc_subnets
+
+- name: delete vpc security groups
+  ec2_group:
+    state: absent
+    profile: "{{ aws_profile}}"
+    region: "{{ aws_region }}"
+    vpc_id: "{{ vpc_info.vpcs[0].vpc_id }}"
+    name: "db_sg_{{ vpc_info.vpcs[0].vpc_id }}"
+    description: "db security group for {{ vpc_info.vpcs[0].vpc_id }}"
+    rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: 0.0.0.0/0
+  register: db_sg 
+
+- name: Delete Internet Gateway
+  ec2_vpc_igw:
+    state: absent
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    vpc_id: "{{ vpc_info.vpcs[0].vpc_id }}"
+    tags:
+      Name: "db_igw"
+  register: db_igw
+
+- name: Delete VPC for db
+  ec2_vpc_net:
+    state: absent
+    region: "{{ aws_region }}"
+    name: "{{ vpc_name }}"
+    cidr_block: "{{ vpc_cidr }}"
+    dns_hostnames: yes
+    dns_support: yes
+    multi_ok: no
+    tenancy: default
+    profile: "{{ aws_profile }}"
+    tags:
+      Name: "db_vpc"
+  register: db_vpc

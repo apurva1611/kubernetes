@@ -6,6 +6,12 @@
   tasks:
   - name: delete rds
     import_role:
-      name: roles/teardown-rds-role
+      name: roles/teardown-rds-webapp-role
+  - name: delete rds
+    import_role:
+      name: roles/teardown-rds-poller-role
+  - name: delete rds
+    import_role:
+      name: roles/teardown-rds-notifier-role            
 
   
