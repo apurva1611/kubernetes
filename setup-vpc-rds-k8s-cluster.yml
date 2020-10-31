@@ -9,8 +9,9 @@
         
     - name: Create RDS instance
       import_role:
-        name: roles/setup-rds-role
+        name: roles/setup-rds-role 
 
     - name: Create VPC peering
       import_role:
         name: roles/setup-vpc-peering-role
+ 
