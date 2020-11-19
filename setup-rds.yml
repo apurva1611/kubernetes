@@ -5,10 +5,5 @@
   tasks:
     - name: Create RDS instance
       import_role:
-        name: roles/setup-rds-webapp-role
-    - name: Create RDS instance
-      import_role:
-        name: roles/setup-rds-poller-role 
-    - name: Create RDS instance
-      import_role:
-        name: roles/setup-rds-notifier-role                
+        name: roles/setup-rds-role
+             
