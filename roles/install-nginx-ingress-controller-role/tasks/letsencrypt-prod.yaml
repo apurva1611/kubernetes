@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+ labels:
+   name: letsencrypt-prod
+ name: letsencrypt-prod
+spec:
+ acme:
+   email: shah.ac@northeastern.com
+   http01: {}
+   privateKeySecretRef:
+     name: letsencrypt-prod
+   server: https://acme-v02.api.letsencrypt.org/directory

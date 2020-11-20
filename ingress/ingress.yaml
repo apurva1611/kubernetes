@@ -1,0 +1,54 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: app-ingress
+  annotations:
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    # nginx.ingress.kubernetes.io/auth-signin: https://$host/oauth2/start?rd=$request_uri
+    # nginx.ingress.kubernetes.io/auth-url: https://$host/oauth2/auth
+    # nginx.ingress.kubernetes.io/auth-url: "https://app.k8s.prod.akashkatakam.com/oauth2/auth"
+    # nginx.ingress.kubernetes.io/auth-signin: "https://app.k8s.prod.akashkatakam.com/oauth2/start?rd=$escaped_request_uri"
+    # nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    # nginx.ingress.kubernetes.io/secure-backends: "true"
+    # nginx.ingress.kubernetes.io/auth-response-headers: Authorization
+    # kubernetes.io/ingress.allow-http: "false"
+    # nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    # nginx.ingress.kubernetes.io/configuration-snippet: |
+    #   auth_request_set $name_upstream_1 $upstream_cookie_name_1;
+    #   access_by_lua_block {
+    #     if ngx.var.name_upstream_1 ~= "" then
+    #       ngx.header["Set-Cookie"] = "name_1=" .. ngx.var.name_upstream_1 .. ngx.var.auth_cookie:match("(; .*)")
+    #     end
+    #   }  
+    # kubernetes.io/ingress.class: "nginx"
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    kubernetes.io/tls-acme: "true"
+    # nginx.ingress.kubernetes.io/rewrite-target: /$1
+    # nginx.ingress.kubernetes.io/permanent-redirect: http://app.prod.achirashah.com   
+    # nginx.ingress.kubernetes.io/rewrite-target: /$1 # Lets us rewrite example.com/something/hello to example.com/hello
+    # nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    # nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # nginx.ingress.kubernetes.io/affinity: "cookie"
+    # nginx.ingress.kubernetes.io/session-cookie-name: "route"
+    # nginx.ingress.kubernetes.io/session-cookie-hash: "sha1"
+    # nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    # nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+spec:
+  tls:
+    - hosts:
+      - prod.achirashah.com
+      - app.prod.achirashah.com
+      secretName: app-nginx-nginx-ingress-default-server-secret
+  rules:
+  - host: app.prod.achirashah.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          serviceName: webapp
+          servicePort: 8080      

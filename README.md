@@ -17,6 +17,12 @@ To create the cluster run following command
 $ ansible-playbook setup-k8s-cluster.yml -vvv --extra-vars "env=<env> aws_profile=<env> dns_zone=<zoneid> cluster_name=<cluster-name> state_store=s3://<bucket> ssh_public_key=<yourpublickey>"
 ```
 
+To install ingress-controller and cert-manager
+```
+$ ansible-playbook install-nginx-controller.yaml -vvv
+```
+
+
 To delete the cluster run following command
 
 ```

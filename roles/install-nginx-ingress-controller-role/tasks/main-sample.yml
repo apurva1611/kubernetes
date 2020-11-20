@@ -1,0 +1,31 @@
+---
+# tasks file for install-ngnix
+- name: Add Ngnix Repo
+  shell: "helm repo add stable https://kubernetes-charts.storage.googleapis.com/"
+
+- name: Install Nginx
+  shell: "helm install ingress stable/nginx-ingress --set controller.hostNetwork=true,controller.kind=DaemonSet"
+
+- name: Add Cert Manager Repo
+  shell: "helm repo add jetstack https://charts.jetstack.io"
+
+- name: Creating Namespace cert Manager
+  shell: "kubectl create namespace cert-manager"
+
+- name: Adding Label
+  shell: "kubectl label namespace cert-manager certmanager.k8s.io/disable-validation=true"
+
+- name: Applying changes
+  shell: "kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.8/deploy/manifests/00-crds.yaml"
+
+- name: Apply changes for Cert Manager
+  shell: "kubectl apply -f install-ngnix/tasks/letsencrypt-prod.yaml"
+
+- name: Install Cert Manager
+  shell: "helm install cert-manager --namespace cert-manager --version v0.8.1 jetstack/cert-manager --set ingressShim.defaultIssuerName=letsencrypt-prod --set ingressShim.defaultIssuerKind=ClusterIssuer"
+
+# - name: Install dashboard
+#   shell: "kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta4/aio/deploy/recommended.yaml"
+
+# - name: OAuth2 proxy for kubernetes dashboard
+#   shell: "helm install dashboard --namespace=kubernetes-dashboard --set oauth.clientID={{ clientId }},oauth.clientSecret={{ clientSecret }},oauth.cookieSecret={{ cookieSecret }},oauth.githubOrg={{ githubOrg }},dashboard.domain={{ dashboardDomain }} --debug ./oauth/"

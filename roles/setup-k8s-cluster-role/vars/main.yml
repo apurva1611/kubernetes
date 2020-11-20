@@ -3,10 +3,11 @@
   bastion: true
   topology: private
 
-  master_node_size: t2.medium
-  compute_node_size: t2.medium
+  master_node_size: t3.medium
+  compute_node_size: t3.medium
   kubernetes_version: "1.18.0"  
-  master_volume_size: 50
+  master_volume_size: 20
+  node_volume_size: 20
   kubernetes_networking: amazon-vpc-routed-eni
   
   cloud: aws
@@ -14,7 +15,7 @@
   dns: public
   out: ~/tmp/kops-out
   prod_az_count: 3
-  compute_node_count: 3
+  compute_node_count: 5
   env: prod
   az_array: []
   ssh_public_key: admin -i 

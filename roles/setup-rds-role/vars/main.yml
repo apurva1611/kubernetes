@@ -27,14 +27,14 @@ poller: "user-backend-poller-db"
 notifier: "user-backend-webapp-db"
 
 vpc_name: "db-{{ aws_region }}-vpc"
-vpc_cidr: 10.0.0.0/16
+vpc_cidr: 10.10.0.0/16
 vpc_subnets:
   private-1:
-    cidr: 10.0.1.0/24
+    cidr: 10.10.1.0/24
     az: "{{ aws_region }}b"
   private-2:
-    cidr: 10.0.2.0/24
-    az: "{{ aws_region }}c"
+    cidr: 10.10.2.0/24
+    az: "{{ aws_region }}a"
 vpc_security_groups:
   - name: ssh
     description: "Open SSH port 22"
