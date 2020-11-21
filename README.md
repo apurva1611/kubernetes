@@ -36,3 +36,38 @@ $ ansible-playbook setup-rds-vpcPeering.yaml --extra-vars "aws_profile=<env> clu
 To delete the rds and vpc peering run following
 
 $ ansible-playbook teardown-rds-vpcPeering.yml -vvv --extra-vars "aws_profile=<env> cluster_name=<env>"
+
+
+Steps
+1) app-prereq
+run app-prereq jenkins 
+or
+``` 
+$ helm upgrade --install app-prereq app-prereq -n monitoring
+$ helm upgrade --install elasticsearch-exporter prometheus-community/prometheus-elasticsearch-exporter -n monitoring
+```
+
+2) create namespace
+```
+$ kubectl create namespace cert-manager
+```
+3) run
+```
+$ kubectl apply -f letsencrypt-prod.yaml 
+$ kubectl apply -f letsencrypt-staging.yaml 
+```
+4) run
+```
+$ ansible-playbook install-nginx-controller.yaml -vvv --extra-vars
+$ ansible-playbook setup-cluster-autoscaler.yml -vvv --extra-vars
+$ ansible-playbook setup-metric-server.yaml -vvv --extra-vars
+```
+5) run
+```
+$ kubectl apply -f letsencrypt-prod.yaml 
+$ kubectl apply -f letsencrypt-staging.yaml 
+```
+6) microservices
+run jenkins to deploy microservices - webapp, poller, notifier
+
+7) register externalip to route53

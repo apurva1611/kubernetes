@@ -1,0 +1,17 @@
+---
+# - name: "Create a role and attach a managed policy called 'node.{{ cluster_name }}'"
+#   community.aws.iam_role:
+#     name: autoscaler-role
+#     assume_role_policy_document: roles/cluster-autoscaler/templates/policy1.json
+#     managed_policies:
+#       - arn:aws:iam::aws:policy/node.{{ cluster_name }}
+
+# tasks file for cluster-autoscaler
+- name: Assign a policy to a role
+  command: aws iam put-role-policy --role-name nodes.cluster.prod.achirashah.com --policy-name nodes.cluster.prod.achirashah.com --policy-document {{ policy_json }}
+
+# - name: Install cluster-autoscaler
+#   shell: "helm install {{ clusterAutoscaler_releaseName }} roles/cluster-autoscaler/tasks/cluster-autoscaler --set 'autoscalingGroups[0].name=nodes.{{ cluster_name }},autoscalingGroups[0].maxSize=3,autoscalingGroups[0].minSize=1,rbac.create=true'"
+
+- name: Install cluster-autoscaler
+  command: kubectl apply -f /Users/achirashah/Documents/cloud/kubernetes/kubernetes/roles/cluster-autoscaler-role/templates/cluster-autoscaler-one-asg.yaml
