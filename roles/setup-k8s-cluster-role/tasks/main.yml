@@ -71,7 +71,7 @@
   shell: AWS_PROFILE={{ aws_profile }} kops create secret --name={{ cluster_name }} sshpublickey admin -i {{ ssh_public_key }} --state {{ state_store }}
 
 - name: Create the physical cluster
-  shell: "AWS_PROFILE={{ aws_profile }} kops update cluster {{ cluster_name }} --yes --state {{ state_store }}"
+  shell: "AWS_PROFILE={{ aws_profile }} kops update cluster --name {{ cluster_name }} --yes --state={{ state_store }}"
 
 - name: Validate cluster
   shell: "AWS_PROFILE={{ aws_profile }} kops validate cluster --name={{ cluster_name }} --state={{ state_store }}"
