@@ -133,9 +133,9 @@ podLabels: {}
 
 nodeSelector: {}
 
-ingressShim:
-  defaultIssuerName: letsencrypt-staging
-  defaultIssuerKind: ClusterIssuer
+ingressShim: {}
+  # defaultIssuerName: ""
+  # defaultIssuerKind: ""
   # defaultIssuerGroup: ""
 
 prometheus:
