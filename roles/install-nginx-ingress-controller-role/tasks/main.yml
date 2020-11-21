@@ -9,7 +9,7 @@
   command: "kubectl apply -f crds/"
 
 - name: Deploy latest version of ingress-nginx chart inside monitoring namespace with values      
-  command: helm upgrade --install app-nginx ingress-nginx -n monitoring
+  command: helm upgrade --install app-nginx ingress-nginx  -n monitoring
 
 # - name: add repo for cert-manager
 #   command: helm repo add jetstack https://charts.jetstack.io
@@ -20,8 +20,8 @@
 # - name: configure cluster to use Let`s encrypt cert for ingress-controller
 #   command: kubectl apply -f roles/install-nginx-ingress-controller-role/tasks/letsencrypt-prod.yaml 
 
-- name: configure cluster to use Let`s encrypt cert for ingress-controller
-  command: kubectl apply -f roles/install-nginx-ingress-controller-role/tasks/letsencrypt-staging.yaml   
+# - name: configure cluster to use Let`s encrypt cert for ingress-controller
+#   command: kubectl apply -f roles/install-nginx-ingress-controller-role/tasks/letsencrypt-staging.yaml   
 
 - name: install cert-manager
   command: helm upgrade --install cert-manager cert-manager --namespace=cert-manager --version v1.0.3 
